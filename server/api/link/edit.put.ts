@@ -1,5 +1,9 @@
 import type { z } from 'zod'
 import { LinkSchema } from '@@/schemas/link'
+import { registerSchema } from 'zod-to-openapi'
+
+// Register the LinkSchema for OpenAPI
+registerSchema('Link', LinkSchema)
 
 export default eventHandler(async (event) => {
   const { previewMode } = useRuntimeConfig(event).public
@@ -34,5 +38,24 @@ export default eventHandler(async (event) => {
     setResponseStatus(event, 201)
     const shortLink = `${getRequestProtocol(event)}://${getRequestHost(event)}/${newLink.slug}`
     return { link: newLink, shortLink }
+  }
+})
+
+defineRouteMeta({
+  openAPI: {
+    description: 'Edit an existing short link. Allows updating URL, slug, comment, expiration, etc.',
+    requestBody: {
+      required: true,
+      content: {
+        'application/json': {
+          schema: { $ref: '#/components/schemas/Link' }
+        }
+      }
+    },
+    responses: {
+      '201': { description: 'Link updated successfully.' },
+      '403': { description: 'Preview mode cannot edit links.' },
+      '404': { description: 'Link not found.' }
+    }
   }
 })

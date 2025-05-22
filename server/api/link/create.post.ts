@@ -1,4 +1,8 @@
 import { LinkSchema } from '@@/schemas/link'
+import { registerSchema } from 'zod-to-openapi'
+
+// Register the LinkSchema for OpenAPI
+const LinkOpenAPISchema = registerSchema('Link', LinkSchema)
 
 export default eventHandler(async (event) => {
   const link = await readValidatedBody(event, LinkSchema.parse)
@@ -33,5 +37,30 @@ export default eventHandler(async (event) => {
     setResponseStatus(event, 201)
     const shortLink = `${getRequestProtocol(event)}://${getRequestHost(event)}/${link.slug}`
     return { link, shortLink }
+  }
+})
+
+defineRouteMeta({
+  openAPI: {
+    description: 'Create a new short link.',
+    requestBody: {
+      required: true,
+      content: {
+        'application/json': {
+          schema: { $ref: '#/components/schemas/Link' }
+          // Alternatively, using the registered schema directly:
+          // schema: LinkOpenAPISchema
+        }
+      }
+    },
+    responses: {
+      '201': {
+        description: 'Link created successfully.',
+        // TODO: Define response structure for 201 if needed
+      },
+      '409': {
+        description: 'Link already exists.'
+      }
+    }
   }
 })

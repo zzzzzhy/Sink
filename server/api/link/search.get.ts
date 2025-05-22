@@ -71,3 +71,17 @@ export default eventHandler(async (event) => {
     })
   }
 })
+
+defineRouteMeta({
+  openAPI: {
+    description: 'Search or list all links. Returns a list of all link objects (slug, url, comment).',
+    responses: {
+      '200': {
+        description: 'A list of links.',
+      },
+      '500': {
+         description: 'Failed to fetch link list.'
+      }
+    }
+  }
+})

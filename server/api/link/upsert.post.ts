@@ -1,4 +1,8 @@
 import { LinkSchema } from '@@/schemas/link'
+import { registerSchema } from 'zod-to-openapi'
+
+// Register the LinkSchema for OpenAPI
+registerSchema('Link', LinkSchema)
 
 export default eventHandler(async (event) => {
   const link = await readValidatedBody(event, LinkSchema.parse)
@@ -35,4 +39,22 @@ export default eventHandler(async (event) => {
   setResponseStatus(event, 201)
   const shortLink = `${getRequestProtocol(event)}://${getRequestHost(event)}/${link.slug}`
   return { link, shortLink, status: 'created' }
+})
+
+defineRouteMeta({
+  openAPI: {
+    description: 'Create a new short link or update an existing one if the slug already exists (upsert behavior).',
+    requestBody: {
+      required: true,
+      content: {
+        'application/json': {
+          schema: { $ref: '#/components/schemas/Link' }
+        }
+      }
+    },
+    responses: {
+      '200': { description: 'Link already existed and was returned.' },
+      '201': { description: 'Link created successfully.' },
+    }
+  }
 })
